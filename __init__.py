@@ -49,5 +49,5 @@ def email():
 
 def classFactory(iface):
     # load ParallelOffset class from file ParallelOffset
-    from paralleloffset import ParallelOffset
+    from .paralleloffset import ParallelOffset
     return ParallelOffset(iface)

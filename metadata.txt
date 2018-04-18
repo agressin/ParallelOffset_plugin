@@ -10,9 +10,10 @@
 
 [general]
 name=Line Offset
-qgisMinimumVersion=2.0
-description=Creates a parallell line at a given distance
-version=0.1
+qgisMinimumVersion=2.99
+qgisMaximumVersion=3.99
+description=Creates a parallel line of a selected polyline feature at a given distance
+version=0.2
 author=City and County of Swansea
 email=steven.gardiner@swansea.gov.uk
 
@@ -26,9 +27,9 @@ email=steven.gardiner@swansea.gov.uk
 # tags are comma separated with spaces allowed
 tags=
 
-homepage=
-tracker=
-repository=
+homepage=https://github.com/stevengardiner/ParallelOffset_plugin/tree/master
+tracker=https://github.com/stevengardiner/ParallelOffset_plugin/issues
+repository=https://github.com/stevengardiner/ParallelOffset_plugin/tree/master
 icon=icon.png
 # experimental flag
 experimental=False

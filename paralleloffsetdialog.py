@@ -20,14 +20,18 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
-from ui_paralleloffset import Ui_ParallelOffset
+import os
+
+from PyQt5 import uic,QtCore, QtGui,QtWidgets
+
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'ui_paralleloffset.ui'))
+
 # create the dialog for zoom to point
 
 
-class ParallelOffsetDialog(QtGui.QDialog):
+class ParallelOffsetDialog(QtWidgets.QDialog,FORM_CLASS):
     def __init__(self):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         # Set up the user interface from Designer.
-        self.ui = Ui_ParallelOffset()
-        self.ui.setupUi(self)
+        self.setupUi(self)

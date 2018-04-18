@@ -20,18 +20,19 @@
  ***************************************************************************/
 """
 # Import the PyQt and QGIS libraries
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 #Import other Libraries
 from qgis.core import *
 from shapely.geometry import LineString
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
-import resources
+from .resources import *
 # Import the code for the dialog
-from paralleloffsetdialog import ParallelOffsetDialog
-
+from .paralleloffsetdialog import ParallelOffsetDialog
+import os
 
 class ParallelOffset:
 
@@ -39,7 +40,8 @@ class ParallelOffset:
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
-        self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/paralleloffset"
+        #self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/paralleloffset"
+        self.plugin_dir = os.path.realpath(__file__)
         # initialize locale
         localePath = ""
         locale = QSettings().value("locale/userLocale")[0:2]
@@ -63,7 +65,7 @@ class ParallelOffset:
             QIcon(":/plugins/paralleloffset/icon.png"),
             u"Line Offset", self.iface.mainWindow())
         # connect the action to the run method
-        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+        self.action.triggered.connect(self.run)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
@@ -82,66 +84,68 @@ class ParallelOffset:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result == 1:
-			layers = iface.legendInterface().layers()
-			if len(layers) != 0:
-				#Check that there is a selected layer
-				layer = iface.mapCanvas().currentLayer()
-				if layer.type() == 0:
-					#check selected layer is a vector layer
-					if layer.geometryType() == 1:
-						#check to see if selected layer is a linestring geometry
-						if len(layer.selectedFeatures()) != 0:
-							#Dir = float(self.dlg.ui.radLeft.isChecked()
-							layers = iface.legendInterface().layers()
-							Lexists = "false"
-							#check to see if the virtual layer already exists
-							for layer in layers:
-								if layer.name() == "Parallel_Offset":
-									Lexists = "true"
-									vl = layer
-							#if it doesn't exist create it
-							if Lexists == "false":
-								vl = QgsVectorLayer("Linestring?field=offset:integer&field=direction:string(10)&field=method:string(10)","Parallel_Offset","memory")
-								#vl = QgsVectorLayer("Linestring", "Parallel_Offset", "memory")
-								pr = vl.dataProvider()
-								vl.startEditing()
-								#pr.addAttributes( [ QgsField("offset", Double), QgsField("direction",  String), QgsField("method", String) ] )
-							else:
-								pr = vl.dataProvider()
-								vl.startEditing()
-						
-							#get the direction
-							Dir = 'right'
-							if self.dlg.ui.radLeft.isChecked():
-								Dir = 'left'
-							#get the method
-							if self.dlg.ui.radRound.isChecked():
-								js = 1
-							if self.dlg.ui.radMitre.isChecked():
-								js = 2
-							if self.dlg.ui.radBevel.isChecked():
-								js = 3
-							#get the offset
-							loffset = float(self.dlg.ui.txtDistance.text())
-						
-							#create the new feature from the selection
-					
-							for feature in layer.selectedFeatures():
-								geom = feature.geometry()
-								h = geom.asPolyline()
-								line = LineString(h)
-								nline = line.parallel_offset(loffset, Dir,resolution=16,join_style=js,mitre_limit=10.0)
-								#turn nline back into a polyline and add it to the map as a new layer.
-								fet = QgsFeature()
-								fet.setGeometry(QgsGeometry.fromWkt(str(nline)))
-								fet.setAttributes( [loffset,Dir ,js] )
-								pr.addFeatures( [ fet ] )
-								vl.commitChanges()
-							QgsMapLayerRegistry.instance().addMapLayer(vl)
-							mc=self.iface.mapCanvas()
-							mc.refresh()
-						
-				
-				# do something useful (delete the line containing pass and
-				# substitute with your code)
-			#pass
+            layers = iface.layerTreeCanvasBridge().rootGroup().layerOrder()
+            if len(layers) != 0:
+                #Check that there is a selected layer
+                layer = iface.mapCanvas().currentLayer()
+                if layer.type() == 0:
+                    #check selected layer is a vector layer
+                    if layer.geometryType() == 1:
+                        #check to see if selected layer is a linestring geometry
+                        if len(layer.selectedFeatures()) != 0:
+                            #Dir = float(self.dlg.radLeft.isChecked()
+                            layers = iface.layerTreeCanvasBridge().rootGroup().layerOrder()
+                            Lexists = "false"
+                            #check to see if the virtual layer already exists
+                            for layer in layers:
+                                if layer.name() == "Parallel_Offset":
+                                    Lexists = "true"
+                                    vl = layer
+                            #if it doesn't exist create it
+                            if Lexists == "false":
+                                vl = QgsVectorLayer("Linestring?field=offset:integer&field=direction:string(10)&field=method:string(10)","Parallel_Offset","memory")
+                                #vl = QgsVectorLayer("Linestring", "Parallel_Offset", "memory")
+                                pr = vl.dataProvider()
+                                vl.startEditing()
+                                #pr.addAttributes( [ QgsField("offset", Double), QgsField("direction",  String), QgsField("method", String) ] )
+                            else:
+                                pr = vl.dataProvider()
+                                vl.startEditing()
+                        
+                            #get the direction
+                            Dir = 'right'
+                            if self.dlg.radLeft.isChecked():
+                                Dir = 'left'
+                            #get the method
+                            if self.dlg.radRound.isChecked():
+                                js = 1
+                            if self.dlg.radMitre.isChecked():
+                                js = 2
+                            if self.dlg.radBevel.isChecked():
+                                js = 3
+                            #get the offset
+                            #loffset = float(self.dlg.txtDistance.text())
+                            loffset = self.dlg.sbDistance.value()
+                        
+                            #create the new feature from the selection
+                    
+                            for feature in layer.selectedFeatures():
+                                geom = feature.geometry()
+                                h = geom.asPolyline()
+                                line = LineString(h)
+                                for i in range(self.dlg.sbNumberLines.value()):
+                                    nline = line.parallel_offset(loffset*(i+1), Dir,resolution=16,join_style=js,mitre_limit=10.0)
+                                    #turn nline back into a polyline and add it to the map as a new layer.
+                                    fet = QgsFeature()
+                                    fet.setGeometry(QgsGeometry.fromWkt(str(nline)))
+                                    fet.setAttributes( [loffset,Dir ,js] )
+                                    pr.addFeatures( [ fet ] )
+                                    vl.commitChanges()
+                            QgsProject.instance().addMapLayer(vl)
+                            mc=self.iface.mapCanvas()
+                            mc.refresh()
+                        
+                
+                # do something useful (delete the line containing pass and
+                # substitute with your code)
+            #pass
